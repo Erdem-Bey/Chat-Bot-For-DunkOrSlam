@@ -328,12 +328,12 @@ function InitializeReopenMessages()
 {
 	REOPEN_REQUEST_MESSAGES =
 	[
-		"REOPEN @DunkOrSlum",
-		"Dunk, I was late. Can you reopen please? @DunkOrSlum",
-		"Can you reopen the bets please? @DunkOrSlum",
-		"For this one time, can you please open the bets again? @DunkOrSlum",
-		"I have just woke up. Sorry being late. Can you reopen? @DunkOrSlum",
-		"Just returned from work? I apologize for being late. Can you please reopen? @DunkOrSlum"
+		"REOPEN @DunkOrSlam",
+		"Dunk, I was late. Can you reopen please? @DunkOrSlam",
+		"Can you reopen the bets please? @DunkOrSlam",
+		"For this one time, can you please open the bets again? @DunkOrSlam",
+		"I have just woke up. Sorry being late. Can you reopen? @DunkOrSlam",
+		"Just returned from work? I apologize for being late. Can you please reopen? @DunkOrSlam"
 	];
 }
 
@@ -356,3 +356,4 @@ function GetARandomReopenMessage()
 	LastReopenIndex = i;
 	return REOPEN_REQUEST_MESSAGES[i];
 }
+
