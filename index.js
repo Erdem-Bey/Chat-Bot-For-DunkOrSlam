@@ -1,6 +1,97 @@
 import tmi from "tmi.js";
 import dotenv from "dotenv";
 dotenv.config();
+import fs from "fs";
+
+function readEnvFile(path)
+{
+	if (!fs.existsSync(path)) return "";
+	return fs.readFileSync(path, "utf8");
+}
+
+function upsertEnv(envText, key, value)
+{
+	const line = `${key}=${value}`;
+	const re = new RegExp(`^${key}=.*$`, "m");
+	if (re.test(envText))
+	{
+		return envText.replace(re, line);
+	}
+	return envText.replace(/\s*$/, "\n") + line + "\n";
+}
+
+async function validateAccessToken(accessToken)
+{
+	const res = await fetch("https://id.twitch.tv/oauth2/validate",
+	{
+		headers: { Authorization: `Bearer ${accessToken}` },
+	});
+
+	return res.ok;
+}
+
+async function refreshAccessToken(refreshToken, clientId, clientSecret)
+{
+	const tokenUrl =
+		`https://id.twitch.tv/oauth2/token` +
+		`?grant_type=refresh_token` +
+		`&refresh_token=${encodeURIComponent(refreshToken)}` +
+		`&client_id=${encodeURIComponent(clientId)}` +
+		`&client_secret=${encodeURIComponent(clientSecret)}`;
+
+	const res = await fetch(tokenUrl, { method: "POST" });
+	const data = await res.json();
+
+	if (!res.ok)
+	{
+		throw new Error(`Refresh failed: ${res.status} ${JSON.stringify(data)}`);
+	}
+
+	return data;
+}
+
+async function ensureValidToken()
+{
+	const clientId = (process.env.TWITCH_CLIENT_ID || "").trim();
+	const clientSecret = (process.env.TWITCH_CLIENT_SECRET || "").trim();
+	const refreshToken = (process.env.TWITCH_REFRESH || "").trim();
+	const accessToken = (process.env.TWITCH_OAUTH || "").trim();
+
+	if (!clientId || !clientSecret || !refreshToken)
+	{
+		throw new Error("Missing TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET, or TWITCH_REFRESH in .env.");
+	}
+
+	if (accessToken && await validateAccessToken(accessToken))
+	{
+		return accessToken;
+	}
+
+	const refreshed = await refreshAccessToken(refreshToken, clientId, clientSecret);
+
+	// Twitch may rotate refresh_token. Save both.
+	const newAccess = refreshed.access_token;
+	const newRefresh = refreshed.refresh_token || refreshToken;
+
+	let envText = readEnvFile(".env");
+	envText = upsertEnv(envText, "TWITCH_OAUTH", newAccess);
+	envText = upsertEnv(envText, "TWITCH_REFRESH", newRefresh);
+	fs.writeFileSync(".env", envText, "utf8");
+
+	process.env.TWITCH_OAUTH = newAccess;
+	process.env.TWITCH_REFRESH = newRefresh;
+
+	return newAccess;
+}
+
+/**************************************************************************
+***************************************************************************
+***************************************************************************
+***************************************************************************
+***************************************************************************
+***************************************************************************
+***************************************************************************
+***************************************************************************/
 
 const CHANNEL = (process.env.CHANNEL || "dunkorslam").toLowerCase();
 const WIZEBOT_NAME = "wizebot";
@@ -13,8 +104,8 @@ const MIN_IDIOT_GAP_MS = 300_000;	// minimal gap between replies to idiots
 const DUP_WINDOW_MS = 30_000;		// Twitch duplicate window
 
 // Every time the shop is opened, the code will buy an item from `SHOP_ITEMS_TO_BUY` in order.
-// Example array initializations: [], [1], [2], [1, 2, 3];
-const SHOP_ITEMS_TO_BUY = [1, 2, 3];
+// Example array initializations: [], [1], [2], [5, 2, 1];
+const SHOP_ITEMS_TO_BUY = [1];
 var ShopItemToBuyIndex = 0;
 
 // Bet reopen request
@@ -45,6 +136,8 @@ let willReplyToIdiot = false;
 let willReplyToWizeBot = false;
 let variantIndex = 0;
 const seenMsgIds = new Set();
+
+await ensureValidToken();
 
 const client = new tmi.Client
 ({
@@ -104,7 +197,7 @@ client.on("message", (channel, tags, message, self) =>
 		}
 		else if (message == "!uguu")
 		{
-			console.log(GetTime() + ` !uguu (from: ${from}): "${message}"`);
+			console.log(GetTime() + ` !uguu (from: ${from})"`);
 		}
 	}
 });
@@ -126,8 +219,12 @@ async function processMessagesFrom_Dunk(channel, dunkName, message)
 			await client.say(channel, `!deposit ${SHOP_ITEMS_TO_BUY[ShopItemToBuyIndex]}`);
 			ShopItemToBuyIndex++;
 		}
+		else
+		{
+			console.log(GetTime() + " The shop is open, but there is nothing to buy in the list.");
+		}
 	}
-	else if (message === "!close")
+	else if (message === "!NoMore")
 	{
 		if (EnableReopenRequest === true)
 		{
@@ -135,7 +232,7 @@ async function processMessagesFrom_Dunk(channel, dunkName, message)
 			await client.say(channel, GetARandomReopenMessage());
 		}
 	}
-	else if (message.startsWith("!DoYou? TI"))
+	else if (message.startsWith("!DoYou? Noita Soler TI"))
 	{
 		if (VOTE_FOR_TI === true)
 		{
@@ -328,12 +425,12 @@ function InitializeReopenMessages()
 {
 	REOPEN_REQUEST_MESSAGES =
 	[
-		"REOPEN @DunkOrSlam",
-		"Dunk, I was late. Can you reopen please? @DunkOrSlam",
-		"Can you reopen the bets please? @DunkOrSlam",
-		"For this one time, can you please open the bets again? @DunkOrSlam",
-		"I have just woke up. Sorry being late. Can you reopen? @DunkOrSlam",
-		"Just returned from work? I apologize for being late. Can you please reopen? @DunkOrSlam"
+		"REOPEN @DunkOrSlum",
+		"Dunk, I was late. Can you reopen please? @DunkOrSlum",
+		"Can you reopen the bets please? @DunkOrSlum",
+		"For this one time, can you please open the bets again? @DunkOrSlum",
+		"I have just woke up. Sorry being late. Can you reopen? @DunkOrSlum",
+		"Just returned from work. I apologize for being late. Can you please reopen? @DunkOrSlum"
 	];
 }
 
@@ -356,4 +453,3 @@ function GetARandomReopenMessage()
 	LastReopenIndex = i;
 	return REOPEN_REQUEST_MESSAGES[i];
 }
-

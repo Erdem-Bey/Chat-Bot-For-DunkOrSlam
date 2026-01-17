@@ -1,0 +1,69 @@
+======================
+= INSTALLING Node.js =
+======================
+
+Install project dependencies (node_modules)
+
+This project depends on external Node.js packages.
+The "node_modules" directory is NOT included and must be generated.
+
+Steps:
+1) Install Node.js (LTS version) from:
+   https://nodejs.org
+
+2) Open a command prompt in the project directory
+   (the directory that contains "package.json").
+
+3) Run:
+   npm install
+
+This will create the "node_modules" directory automatically
+based on "package.json" and "package-lock.json".
+
+Do NOT create "node_modules" manually.
+Do NOT edit files inside "node_modules".
+
+
+
+==========================
+= CREATING THE .env FILE =
+==========================
+
+You need to create a file named ".env" next to "index.js".
+It will contain the following lines.
+
+TWITCH_USERNAME=yourusernamehere_insmallletters
+TWITCH_OAUTH=a0b1c2d3e4f5g6h7i8j9k0l1m2n3o4
+CHANNEL=dunkorslam
+TWITCH_CLIENT_ID=a0b1c2d3e4f5g6h7i8j9k0l1m2n3o4
+TWITCH_CLIENT_SECRET=a0b1c2d3e4f5g6h7i8j9k0l1m2n3o4
+TWITCH_REFRESH=a0b1c2d3e4f5g6h7i8j9k0l1m2n3o4p5r6s7q8t9u0w1v2y3z4
+TWITCH_BROADCASTER_ID=123456789
+
+The values above are symbolic (exluding "CHANNEL") and you have to change them with the valid ones.
+
+Go to:
+https://dev.twitch.tv/console/apps
+
+Register a new app.
+Name: <Anything>
+OAuth Redirect URL: "http://localhost:3000/callback"
+Category: Chat Bot
+Client Type: Confidential (or leave as is if grayed out)
+Client ID (TWITCH_CLIENT_ID): <shown in console>
+Client Secret (TWITCH_CLIENT_SECRET): Generate new secret
+
+Run "get_tokens.js".
+It will print a link.
+Open the link in your browser and authorize the app.
+The script will automatically update ".env" with:
+- TWITCH_OAUTH
+- TWITCH_REFRESH
+
+NOTE:
+TWITCH_OAUTH is temporary and will be refreshed automatically when expired.
+
+Optional:
+Find your broadcaster ID using an online tool.
+Example:
+https://www.streamweasels.com/tools/convert-twitch-username-to-user-id/
