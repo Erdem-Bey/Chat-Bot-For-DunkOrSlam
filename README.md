@@ -21,6 +21,8 @@ Features
 - Automatically buys items when the in-stream shop opens ("!open").
 - Handles gifted subs, new subs, and re-subs differently for logging.
 - Ignores or humorously responds to fake subscription messages.
+- Automatically votes on bets.
+- Automatic "reopen" messages after a bet closes.
 - Fully automatic OAuth token refresh (no manual re-login once set up).
 - Timestamped console logging for long-running sessions.
 
