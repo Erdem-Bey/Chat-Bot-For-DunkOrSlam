@@ -17,11 +17,8 @@ const EnableReopenRequest = false;
 
 // Every time the shop is opened, the code will buy an item from `SHOP_ITEMS_TO_BUY` in order.
 // Example array initializations: [], [1], [2], [5, 2, 1];
-const SHOP_ITEMS_TO_BUY = [1, 3];
+const SHOP_ITEMS_TO_BUY = [1];
 var ShopItemToBuyIndex = 0;
-
-// Bald.Energy Score Boost
-var BE_Enable = false;
 
 /***********************************
 * REFRESH OAUTH TOKEN IF NECESSARY *
@@ -216,7 +213,7 @@ client.on("message", (channel, tags, message, self) =>
 		}
 		else if (message == "!uguu")
 		{
-			ConsoleLog_WithDate(FG_YELLOW, BG_BLACK, `!uguu (from: ${from})`);
+			ConsoleLog_WithDate(LFG_YELLOW, BG_BLACK, `!uguu (from: ${from})`);
 		}
 		else if (message == "!magikarp")
 		{
@@ -452,6 +449,10 @@ function GetARandomReopenMessage()
 * BALD ENERGY RANK BOOST *
 *************************/
 
+// Appearantly Dunk can see these messages and this creates inconvenience.
+// Please don't use this part or you will get banned.
+
+/*var BE_Enable			= false;
 var BE_EnableUguu		= true;
 var BE_EnableMagikarp	= true;
 var BE_EnablePunch		= true;
@@ -507,7 +508,7 @@ async function BE_Run()
 			await Delay(600000, 600000);
 		}
 	}
-}
+}*/
 
 /********************
 * HELPFUL FUNCTIONS *
